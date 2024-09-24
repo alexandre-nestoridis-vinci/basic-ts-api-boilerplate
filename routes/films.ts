@@ -9,6 +9,8 @@ const router = Router();
 
 const jsonDbPath = path.join(__dirname, "/../data/films.json");
 
+let getRequestCounter = 0;
+
 
 const defaultFilms: Film[] = [
     {
@@ -57,6 +59,14 @@ const defaultFilms: Film[] = [
       imageUrl: "https://example.com/pulpfiction.jpg"
     }
   ];
+
+  router.use((req, _res, next) => {
+    if (req.method === "GET") {
+        getRequestCounter++;
+        console.log(`GET requests counter: ${getRequestCounter}`);
+    }
+    next();
+  });
 
   router.get("/", (req, res) => {
     if (req.query.order && typeof req.query.order !== "string") {
