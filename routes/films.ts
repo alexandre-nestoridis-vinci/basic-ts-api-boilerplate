@@ -68,12 +68,27 @@ const defaultFilms: Film[] = [
     next();
   });
 
+
+  /*
+   GET /films?minimum-duration=value : ascending order by duration
+  */
+
   router.get("/", (req, res) => {
     if (req.query.order && typeof req.query.order !== "string") {
         return res.sendStatus(400);
       }
+    
+    const orderByDuration =
+        typeof req.query.order === "string" && req.query.order.includes("duration")
+        ? req.query.order
+        : undefined;
+    
     let filmsMenu: Film[] = []
     const films = parse(jsonDbPath, defaultFilms);
+
+    if (orderByDuration)
+        filmsMenu = [...films].sort((a, b) => a.duration - b.duration);
+
     return res.json(filmsMenu.length === 0 ? films : filmsMenu);
   });
 
