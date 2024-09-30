@@ -158,5 +158,106 @@ router.post("/", (req, res) => {
 });
 
 
+// Delete a film from the menu
+router.delete("/:id", (req, res) => {
+
+  const films = parse(jsonDbPath, defaultFilms);
+  console.log("delete operation requested on ", films);
+  const idInRequest = parseInt(req.params.id, 10);
+  const foundIndex = films.findIndex((film) => film.id === idInRequest);
+
+  if (foundIndex < 0) return res.sendStatus(404);
+
+  const itemsRemovedFromMenu = films.splice(foundIndex, 1);
+  const itemRemoved = itemsRemovedFromMenu[0];
+
+  serialize(jsonDbPath, films);
+
+  return res.json(itemRemoved);
+});
+
+// Update a film based on its id and new values for its parameters
+router.patch("/:id", (req, res) => {
+  const body: unknown = req.body;
+  if (
+    !body ||
+    typeof body !== "object" ||
+    ("title" in body &&
+      (typeof body.title !== "string" || !body.title.trim())) ||
+    ("director" in body &&
+      (typeof body.director !== "string" || !body.director.trim())) ||
+    ("duration" in body &&
+      (typeof body.duration !== "number" || !body.duration)) ||
+    ("budget" in body &&
+      (typeof body.budget !== "number" || !body.budget)) ||
+    ("description" in body &&
+      (typeof body.description !== "string" || !body.description.trim())) ||
+    ("imageUrl" in body &&
+      (typeof body.imageUrl !== "string" || !body.imageUrl.trim()))
+  ) {
+    return res.sendStatus(400);
+  }
+
+  const filmToUpdate: NewFilm = body as NewFilm;
+
+  const films = parse(jsonDbPath, defaultFilms);
+  const idInRequest = parseInt(req.params.id, 10);
+  const foundIndex = films.findIndex((film) => film.id === idInRequest);
+
+  if (foundIndex < 0) return res.sendStatus(404);
+
+  const updatedFilm: Film = { ...films[foundIndex], ...filmToUpdate };
+
+  films[foundIndex] = updatedFilm;
+
+  serialize(jsonDbPath, films);
+
+  return res.json(updatedFilm);
+});
+
+
+// Put a film based on its id and new values for its parameters
+router.put("/:id", (req, res) => {
+  const body: unknown = req.body;
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !("title" in body) ||
+    !("director" in body) ||
+    !("duration" in body) ||
+    !("budget" in body) ||
+    !("description" in body) ||
+    !("imageUrl" in body) ||
+    typeof body.title !== "string" ||
+    typeof body.director !== "string" ||
+    typeof body.duration !== "number" ||
+    typeof body.budget !== "number" ||
+    typeof body.description !== "string" ||
+    typeof body.imageUrl !== "string" ||
+    !body.title.trim() ||
+    !body.director.trim() ||
+    !body.description.trim() ||
+    !body.imageUrl.trim()
+  ) {
+    return res.sendStatus(400);
+  }
+
+  const filmToUpdate: NewFilm = body as NewFilm;
+
+  const films = parse(jsonDbPath, defaultFilms);
+  const idInRequest = parseInt(req.params.id, 10);
+  const foundIndex = films.findIndex((film) => film.id === idInRequest);
+
+  if (foundIndex < 0) return res.sendStatus(404);
+
+  const updatedFilm: Film = { ...films[foundIndex], ...filmToUpdate };
+
+  films[foundIndex] = updatedFilm;
+
+  serialize(jsonDbPath, films);
+
+  return res.json(updatedFilm);
+});
+
 
 export default router;
