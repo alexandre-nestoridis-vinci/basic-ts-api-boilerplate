@@ -1,8 +1,8 @@
 import { Router } from "express";
 
 import path from "node:path";
-import {Film} from "../types";
-import { parse } from "../utils/json";
+import { NewFilm, Film } from "../types";
+import { parse, serialize } from "../utils/json";
 
 
 const router = Router();
@@ -77,7 +77,6 @@ const defaultFilms: Film[] = [
     if (req.query.order && typeof req.query.order !== "string") {
         return res.sendStatus(400);
       }
-    
     const orderByDuration =
         typeof req.query.order === "string" && req.query.order.includes("duration")
         ? req.query.order
@@ -91,6 +90,73 @@ const defaultFilms: Film[] = [
 
     return res.json(filmsMenu.length === 0 ? films : filmsMenu);
   });
+
+  /*
+  GET films/{id} : Read the film identified by an id in the menu
+  */
+
+  router.get("/:id", (req, res) => {
+    const films = parse(jsonDbPath, defaultFilms);
+    const idInRequest = parseInt(req.params.id, 10);
+    const indexOfFilmFound = films.findIndex(
+      (film: Film) => film.id === idInRequest
+    );
+  
+    if (indexOfFilmFound < 0) return res.sendStatus(404);
+  
+    return res.json(films[indexOfFilmFound]);
+  });
+
+  /* 
+  POST films : Create a film to be added to the menu.
+  */
+router.post("/", (req, res) => {
+  const body: unknown = req.body;
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !("title" in body) ||
+    !("director" in body) ||
+    !("duration" in body) ||
+    !("budget" in body) ||
+    !("description" in body) ||
+    !("imageUrl" in body) ||
+    typeof body.title !== "string" ||
+    typeof body.director !== "string" ||
+    typeof body.duration !== "number" ||
+    typeof body.budget !== "number" ||
+    typeof body.description !== "string" ||
+    typeof body.imageUrl !== "string" ||
+    !body.title.trim() ||
+    !body.director.trim() ||
+    !body.description.trim() ||
+    !body.imageUrl.trim()
+  ) {
+    return res.sendStatus(400);
+  }
+  const { title, director, duration, budget, description, imageUrl } = body as NewFilm;
+  const films = parse(jsonDbPath, defaultFilms);
+  const nextId = 
+    films.reduce((maxId, film) => (film.id > maxId ? film.id : maxId), 0) + 
+    1;
+
+  const addedFilm: Film = {
+    id: nextId,
+    title,
+    director,
+    duration,
+    budget,
+    description,
+    imageUrl
+  };
+
+  films.push(addedFilm);
+
+  serialize(jsonDbPath, films);
+
+  return res.json(addedFilm);
+});
+
 
 
 export default router;
