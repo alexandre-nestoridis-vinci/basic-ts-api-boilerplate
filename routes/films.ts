@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { NewFilm } from "../types";
+import { NewFilm, FilmToUpdate } from "../types";
 // import { parse, serialize } from "../utils/json";
 
 
@@ -115,7 +115,7 @@ router.patch("/:id", (req, res) => {
     return res.sendStatus(400);
   }
 
-  const filmToUpdate: Partial<NewFilm> = body;
+  const filmToUpdate: FilmToUpdate = body;
 
   const id = Number(req.params.id);
   const updatedFilm = updateFilm(id, filmToUpdate);
